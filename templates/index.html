@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Alif - Chat Assistant</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 800px;
+            height: 90vh;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .chat-header::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            width: 12px;
+            height: 12px;
+            background: #4CAF50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin: 0 10px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            order: 2;
+        }
+
+        .message.ai .message-avatar {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message.ai .message-content {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .message.ai .message-content h1,
+        .message.ai .message-content h2,
+        .message.ai .message-content h3 {
+            margin: 10px 0 8px 0;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .message.ai .message-content h1 {
+            font-size: 16px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 5px;
+        }
+
+        .message.ai .message-content h2 {
+            font-size: 15px;
+        }
+
+        .message.ai .message-content h3 {
+            font-size: 14px;
+        }
+
+        .message.ai .message-content p {
+            margin: 8px 0;
+        }
+
+        .message.ai .message-content ul,
+        .message.ai .message-content ol {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .message.ai .message-content li {
+            margin: 4px 0;
+        }
+
+        .message.ai .message-content strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .message.ai .message-content em {
+            font-style: italic;
+            color: #7f8c8d;
+        }
+
+        .message.ai .message-content code {
+            background: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #e74c3c;
+        }
+
+        .message.ai .message-content pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #667eea;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .message.ai .message-content blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+            margin: 10px 0;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.ai .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            border: 1px solid #e0e0e0;
+            margin-left: 60px;
+            width: fit-content;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(1); opacity: 0.5; }
+            40% { transform: scale(1.3); opacity: 1; }
+        }
+
+        .chat-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        #messageInput {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            resize: none;
+            max-height: 100px;
+            transition: border-color 0.3s ease;
+        }
+
+        #messageInput:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            width: 45px;
+            height: 45px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+
+        .send-button:hover {
+            transform: scale(1.1);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .clear-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 12px;
+            display: none;
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            margin-right: 10px;
+        }
+
+        .file-upload-input {
+            display: none;
+        }
+
+        .file-upload-button {
+            width: 45px;
+            height: 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50%;
+            background: white;
+            color: #667eea;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-button:hover {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .file-upload-button.has-file {
+            border-color: #4CAF50;
+            background: #4CAF50;
+            color: white;
+        }
+
+        .file-preview {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 8px;
+            margin: 10px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .remove-file {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 10px;
+            display: none;
+        }
+
+        /* Scrollbar styling */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .chat-container {
+                width: 95%;
+                height: 95vh;
+            }
+            
+            .message-content {
+                max-width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1><i class="fas fa-robot"></i> AI Alif</h1>
+            <p>Asisten pintar siap membantu Anda</p>
+            <button class="clear-button" onclick="clearChat()" title="Clear chat">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message ai">
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    Hai! Saya AI Alif, asisten pintar Anda. Apa yang bisa saya bantu hari ini?
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <div class="input-container">
+                <div class="file-upload-wrapper">
+                    <input type="file" id="fileInput" class="file-upload-input" accept="image/*,.pdf,.txt,.doc,.docx" />
+                    <button type="button" class="file-upload-button" id="fileUploadButton" onclick="document.getElementById('fileInput').click()" title="Upload file/gambar">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <button type="button" class="remove-file" id="removeFileButton" onclick="removeFile()" title="Hapus file">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="input-wrapper">
+                    <textarea id="messageInput" placeholder="Tulis pesan Anda..." rows="1"></textarea>
+                    <div id="filePreview" style="display: none;">
+                        <img id="previewImage" class="file-preview" style="display: none;" />
+                        <div id="fileInfo" class="file-info"></div>
+                    </div>
+                </div>
+                <button class="send-button" onclick="sendMessage()" id="sendButton">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let messageHistory = [];
+        let currentImageUrl = null;
+
+        // Auto-resize textarea
+        const messageInput = document.getElementById('messageInput');
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+
+        // Send message on Enter (Shift+Enter for new line)
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        function formatText(text) {
+            // Konversi format teks agar lebih rapih
+            let formatted = text.trim(); // Hapus spasi di awal dan akhir
+            
+            // Hapus multiple spaces dan newlines
+            formatted = formatted.replace(/\n{3,}/g, '\n\n');
+            formatted = formatted.replace(/[ \t]+/g, ' ');
+            
+            // Konversi markdown-like formatting ke HTML
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            formatted = formatted.replace(/`(.*?)`/g, '<code>$1</code>');
+            
+            // Konversi bullet points
+            formatted = formatted.replace(/^\s*[-•]\s*(.+)$/gm, '<li>$1</li>');
+            
+            // Bungkus li elements dengan ul
+            if (formatted.includes('<li>')) {
+                formatted = formatted.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            }
+            
+            // Konversi angka dengan titik menjadi list
+            formatted = formatted.replace(/^\s*(\d+)\.\s*(.+)$/gm, '<li>$2</li>');
+            
+            // Konversi headers
+            formatted = formatted.replace(/^#\s*(.+)$/gm, '<h1>$1</h1>');
+            formatted = formatted.replace(/^##\s*(.+)$/gm, '<h2>$1</h2>');
+            formatted = formatted.replace(/^###\s*(.+)$/gm, '<h3>$1</h3>');
+            
+            // Konversi quotes
+            formatted = formatted.replace(/^>\s*(.+)$/gm, '<blockquote>$1</blockquote>');
+            
+            // Konversi newlines ke paragraph breaks
+            formatted = formatted.replace(/\n\n/g, '</p><p>');
+            formatted = formatted.replace(/\n/g, '<br>');
+            
+            // Bungkus dengan paragraph jika belum ada HTML tags
+            if (!formatted.includes('<') || formatted.startsWith('<p>')) {
+                formatted = '<p>' + formatted + '</p>';
+            }
+            
+            return formatted;
+        }
+
+        function addMessage(content, isUser = false, imageUrl = null) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            // Tambahkan gambar jika ada
+            if (imageUrl) {
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.className = 'file-preview';
+                img.style.maxWidth = '200px';
+                img.style.maxHeight = '150px';
+                img.style.borderRadius = '8px';
+                img.style.marginBottom = '10px';
+                img.style.cursor = 'pointer';
+                img.title = 'Klik untuk melihat ukuran penuh';
+                img.onclick = function() {
+                    window.open(imageUrl, '_blank');
+                };
+                contentDiv.appendChild(img);
+            }
+            
+            // Tambahkan teks konten dengan format yang lebih baik
+            const textDiv = document.createElement('div');
+            if (isUser) {
+                textDiv.textContent = content;
+            } else {
+                // Format teks AI untuk tampilan yang lebih rapih
+                // Tapi jangan format pesan selamat datang pertama
+                if (content.includes("Hai! Saya AI Alif") && messageHistory.length === 0) {
+                    textDiv.textContent = content;
+                } else {
+                    textDiv.innerHTML = formatText(content);
+                }
+            }
+            contentDiv.appendChild(textDiv);
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Show clear button when there are messages
+            document.querySelector('.clear-button').style.display = 'block';
+        }
+
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'block';
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const message = messageInput.value.trim();
+
+            if (!message && !currentFile) return;
+
+            // Add user message with image if available
+            if (currentFile) {
+                // Buat URL untuk gambar yang akan dikirim
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentImageUrl = e.target.result;
+                    addMessage(message || '(mengirim gambar)', true, currentImageUrl);
+                };
+                reader.readAsDataURL(currentFile);
+            } else {
+                addMessage(message, true);
+            }
+            
+            // Clear input and file
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            
+            // Disable send button
+            sendButton.disabled = true;
+            
+            // Show typing indicator
+            showTypingIndicator();
+
+            try {
+                // Handle file upload (with or without text)
+                if (currentFile) {
+                    const formData = new FormData();
+                    formData.append('file', currentFile);
+                    if (message) {
+                        formData.append('prompt', message);
+                    } else {
+                        formData.append('prompt', 'Jelaskan gambar ini'); // Default prompt untuk gambar
+                    }
+
+                    const response = await fetch('/generate', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    hideTypingIndicator();
+                    
+                    if (data.error) {
+                        addMessage(`Maaf, terjadi kesalahan: ${data.error}`);
+                    } else {
+                        // Tampilkan response AI dengan gambar jika ada
+                        if (data.image_url) {
+                            addMessage(data.result, false, data.image_url);
+                        } else {
+                            addMessage(data.result);
+                        }
+                    }
+
+                    // Remove file after successful upload
+                    removeFile();
+                } else {
+                    // Handle text-only message
+                    const response = await fetch('/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ prompt: message })
+                    });
+                    
+                    const data = await response.json();
+                    hideTypingIndicator();
+                    
+                    if (data.error) {
+                        addMessage(`Maaf, terjadi kesalahan: ${data.error}`);
+                    } else {
+                        addMessage(data.result);
+                    }
+                }
+
+            } catch (error) {
+                hideTypingIndicator();
+                addMessage('Maaf, terjadi kesalahan koneksi. Silakan coba lagi.');
+                console.error('Error:', error);
+            } finally {
+                // Enable send button
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        let currentFile = null;
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            currentFile = file;
+            const filePreview = document.getElementById('filePreview');
+            const previewImage = document.getElementById('previewImage');
+            const fileInfo = document.getElementById('fileInfo');
+            const fileUploadButton = document.getElementById('fileUploadButton');
+            const removeFileButton = document.getElementById('removeFileButton');
+
+            // Tampilkan preview untuk gambar
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                    fileInfo.textContent = `${file.name} (${formatFileSize(file.size)})`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewImage.style.display = 'none';
+                fileInfo.textContent = `${file.name} (${formatFileSize(file.size)})`;
+            }
+
+            filePreview.style.display = 'block';
+            fileUploadButton.classList.add('has-file');
+            removeFileButton.style.display = 'block';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function removeFile() {
+            currentFile = null;
+            document.getElementById('filePreview').style.display = 'none';
+            document.getElementById('previewImage').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileUploadButton').classList.remove('has-file');
+            document.getElementById('removeFileButton').style.display = 'none';
+        }
+
+        // Tambahkan event listener untuk file input
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+
+        function clearChat() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = `
+                <div class="message ai">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        Hai! Saya AI Alif, asisten pintar Anda. Apa yang bisa saya bantu hari ini?
+                    </div>
+                </div>
+            `;
+            document.querySelector('.clear-button').style.display = 'none';
+            messageInput.focus();
+        }
+
+        // Focus input on load
+        window.addEventListener('load', function() {
+            messageInput.focus();
+        });
+    </script>
+</body>
+</html>
