@@ -124,6 +124,71 @@ def analyze_image(image_base64: str, filename: str):
         else:
             return f"❌ Maaf, terjadi kesalahan saat menganalisis gambar: {error_msg}"
 
+def score_answer(question: str, student_answer: str) -> dict:
+    """Scoring jawaban siswa menggunakan Gemini AI untuk CBT"""
+    try:
+        prompt = f"""Kamu adalah seorang penilai CBT yang adil dan komprehensif.
+
+Pertanyaan: {question}
+
+Jawaban Siswa: {student_answer}
+
+Tugas kamu:
+1. Beri skor dari 0-100 berdasarkan:
+   - Kebenaran konsep (40%)
+   - Kelengkapan jawaban (30%)
+   - Kejelasan penjelasan (20%)
+   - Penggunaan istilah yang tepat (10%)
+
+2. Berikan feedback yang mencakup:
+   - Apa yang sudah benar
+   - Apa yang masih kurang/salah
+   - Saran perbaikan
+
+Format response:
+SKOR: [angka 0-100]
+
+ANALISIS:
+- Kekuatan: [point-point yang benar]
+- Kelemahan: [point-point yang kurang]
+- Saran: [bagaimana meningkatkan jawaban]
+"""
+        
+        result = text_model.generate_content(prompt)
+        ai_response = result.text
+        
+        # Parse score dari response
+        score = 0
+        import re
+        score_match = re.search(r'SKOR:\s*(\d+)', ai_response)
+        if score_match:
+            score = int(score_match.group(1))
+        else:
+            score_match = re.search(r'(\d+)', ai_response)
+            if score_match:
+                score = int(score_match.group(1))
+        
+        # Format feedback untuk HTML
+        feedback_html = ai_response.replace('SKOR:', '<strong>SKOR:</strong>')
+        feedback_html = feedback_html.replace('ANALISIS:', '<strong>ANALISIS:</strong>')
+        feedback_html = feedback_html.replace('- Kekuatan:', '<strong>✅ Kekuatan:</strong>')
+        feedback_html = feedback_html.replace('- Kelemahan:', '<strong>⚠️ Kelemahan:</strong>')
+        feedback_html = feedback_html.replace('- Saran:', '<strong>💡 Saran:</strong>')
+        feedback_html = feedback_html.replace('\n', '<br>')
+        
+        return {
+            "score": score,
+            "feedback": feedback_html,
+            "raw_response": ai_response
+        }
+    
+    except Exception as e:
+        return {
+            "score": 0,
+            "feedback": f"❌ Maaf, terjadi kesalahan saat scoring: {str(e)}",
+            "error": str(e)
+        }
+
 # Flask App
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
@@ -133,8 +198,16 @@ import tempfile
 app = Flask(__name__)
 CORS(app)
 
+# Register Blueprint
+from routes.web import web
+app.register_blueprint(web)
+
 @app.route('/')
-def index():
+def home():
+    return render_template('home.html')
+
+@app.route('/chat')
+def chat():
     return render_template('index.html')
 
 @app.route('/generate', methods=['POST'])

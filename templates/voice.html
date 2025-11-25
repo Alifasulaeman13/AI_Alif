@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBT Voice - UNBIIN</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .question-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+        }
+
+        .question-section h2 {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .question-text {
+            color: #34495e;
+            font-size: 16px;
+            line-height: 1.6;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .answer-section {
+            margin-bottom: 25px;
+        }
+
+        .answer-section h3 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .voice-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .record-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(238, 90, 36, 0.4);
+        }
+
+        .record-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(238, 90, 36, 0.6);
+        }
+
+        .record-button.recording {
+            animation: pulse 1.5s infinite;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .stop-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(127, 140, 141, 0.4);
+        }
+
+        .stop-button:hover {
+            transform: scale(1.1);
+        }
+
+        .transcript-box {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 150px;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+
+        .transcript-box.empty {
+            color: #95a5a6;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .transcript-box.listening {
+            border-color: #667eea;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-section {
+            display: none;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            border-left: 5px solid #4CAF50;
+        }
+
+        .result-section.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .score-display {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .score-label {
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .feedback-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .feedback-box h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .feedback-box p {
+            color: #34495e;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4CAF50;
+        }
+
+        .status-dot.recording {
+            background: #e74c3c;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            position: absolute;
+            top: 30px;
+            left: 30px;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .question-text {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-button">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
+            <h1>
+                <i class="fas fa-microphone"></i>
+                CBT Voice - UNBIIN
+            </h1>
+            <p>Computer-Based Test dengan Voice Recognition</p>
+            <div class="status-indicator" id="statusIndicator">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Siap Merekam</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Question Section -->
+            <div class="question-section">
+                <h2>
+                    <i class="fas fa-question-circle"></i>
+                    Pertanyaan
+                </h2>
+                <div class="question-text" id="questionText">
+                    1+1 
+                </div>
+            </div>
+
+            <!-- Answer Section -->
+            <div class="answer-section">
+                <h3>
+                    <i class="fas fa-comments"></i>
+                    Jawaban Anda (Voice)
+                </h3>
+
+                <div class="voice-controls">
+                    <button class="record-button" id="recordButton" title="Mulai Merekam">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button class="stop-button" id="stopButton" title="Stop Merekam">
+                        <i class="fas fa-stop"></i>
+                    </button>
+                </div>
+
+                <div class="transcript-box empty" id="transcriptBox">
+                    Klik tombol mikrofon untuk mulai berbicara...
+                </div>
+
+                <button class="submit-button" id="submitButton" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                    Submit Jawaban untuk Scoring
+                </button>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>AI sedang menilai jawaban Anda...</p>
+            </div>
+
+            <!-- Result Section -->
+            <div class="result-section" id="resultSection">
+                <div class="score-display">
+                    <div class="score-circle" id="scoreCircle">
+                        85
+                    </div>
+                    <div class="score-label">Skor Anda</div>
+                </div>
+
+                <div class="feedback-box">
+                    <h4><i class="fas fa-comment-dots"></i> Feedback AI:</h4>
+                    <div id="feedbackText">
+                        <!-- Feedback dari AI akan muncul di sini -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Web Speech API
+        let recognition;
+        let isRecording = false;
+        let finalTranscript = '';
+
+        // Elements
+        const recordButton = document.getElementById('recordButton');
+        const stopButton = document.getElementById('stopButton');
+        const transcriptBox = document.getElementById('transcriptBox');
+        const submitButton = document.getElementById('submitButton');
+        const loading = document.getElementById('loading');
+        const resultSection = document.getElementById('resultSection');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const questionText = document.getElementById('questionText');
+        const scoreCircle = document.getElementById('scoreCircle');
+        const feedbackText = document.getElementById('feedbackText');
+
+        // Check browser support
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert('Browser Anda tidak mendukung Web Speech API. Silakan gunakan Chrome atau Edge.');
+        } else {
+            // Initialize Speech Recognition
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'id-ID';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onstart = function () {
+                isRecording = true;
+                recordButton.style.display = 'none';
+                stopButton.style.display = 'flex';
+                transcriptBox.classList.remove('empty');
+                transcriptBox.classList.add('listening');
+                statusDot.classList.add('recording');
+                statusText.textContent = 'Sedang Merekam...';
+            };
+
+            recognition.onresult = function (event) {
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                // Display transcript
+                transcriptBox.innerHTML = finalTranscript + '<span style="color: #95a5a6;">' + interimTranscript + '</span>';
+
+                // Enable submit button if there's text
+                if (finalTranscript.trim().length > 0) {
+                    submitButton.disabled = false;
+                }
+            };
+
+            recognition.onerror = function (event) {
+                console.error('Speech recognition error:', event.error);
+                if (event.error === 'no-speech') {
+                    alert('Tidak ada suara terdeteksi. Silakan coba lagi.');
+                } else if (event.error === 'not-allowed') {
+                    alert('Microphone access ditolak. Silakan izinkan akses microphone.');
+                } else {
+                    alert('Error: ' + event.error);
+                }
+                stopRecording();
+            };
+
+            recognition.onend = function () {
+                if (isRecording) {
+                    // Auto restart if still recording
+                    recognition.start();
+                }
+            };
+        }
+
+        // Record button click
+        recordButton.addEventListener('click', function () {
+            if (recognition) {
+                finalTranscript = '';
+                transcriptBox.textContent = '';
+                resultSection.classList.remove('show');
+                recognition.start();
+            }
+        });
+
+        // Stop button click
+        stopButton.addEventListener('click', function () {
+            stopRecording();
+        });
+
+        function stopRecording() {
+            isRecording = false;
+            if (recognition) {
+                recognition.stop();
+            }
+            recordButton.style.display = 'flex';
+            stopButton.style.display = 'none';
+            transcriptBox.classList.remove('listening');
+            statusDot.classList.remove('recording');
+            statusText.textContent = 'Rekaman Selesai';
+        }
+
+        // Submit button click
+        submitButton.addEventListener('click', async function () {
+            const answer = finalTranscript.trim();
+            const question = questionText.textContent.trim();
+
+            if (!answer) {
+                alert('Jawaban tidak boleh kosong!');
+                return;
+            }
+
+            // Show loading
+            loading.classList.add('show');
+            submitButton.disabled = true;
+            resultSection.classList.remove('show');
+
+            try {
+                const response = await fetch('/api/score-answer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        question: question,
+                        answer: answer
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    return;
+                }
+
+                // Display results
+                scoreCircle.textContent = data.score;
+
+                // Change color based on score
+                if (data.score >= 80) {
+                    scoreCircle.style.background = 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)';
+                } else if (data.score >= 60) {
+                    scoreCircle.style.background = 'linear-gradient(135deg, #FFC107 0%, #FF9800 100%)';
+                } else {
+                    scoreCircle.style.background = 'linear-gradient(135deg, #f44336 0%, #e91e63 100%)';
+                }
+
+                feedbackText.innerHTML = data.feedback;
+                resultSection.classList.add('show');
+                statusText.textContent = 'Penilaian Selesai';
+
+            } catch (error) {
+                alert('Terjadi kesalahan: ' + error.message);
+                console.error('Error:', error);
+            } finally {
+                loading.classList.remove('show');
+                submitButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>
